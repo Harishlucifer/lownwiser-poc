@@ -1,7 +1,21 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Loan application types based on the payload reference
+// ── API endpoints ─────────────────────────────────────────────────────────────
+const API_BASE_URL                = import.meta.env.VITE_API_BASE_URL || "http://localhost:5050";
+const AUTH_ENDPOINT               = `${API_BASE_URL}/alpha/v1/auth/client`;
+const LOAN_ENDPOINT               = `${API_BASE_URL}/alpha/v1/application/short`;
+const WORKFLOW_BUILD_ENDPOINT     = `${API_BASE_URL}/alpha/v1/workflow/build`;
+const WORKFLOW_EXECUTION_ENDPOINT = `${API_BASE_URL}/alpha/v1/workflow/execution`;
+const CREATE_LEAD_ENDPOINT        = `${API_BASE_URL}/alpha/v2/application/create`;
+
+// ── Credentials ───────────────────────────────────────────────────────────────
+const CLIENT_ID       = import.meta.env.VITE_CLIENT_ID;
+const CLIENT_SECRET   = import.meta.env.VITE_CLIENT_SECRET;
+const X_TENANT_DOMAIN = import.meta.env.VITE_X_TENANT_DOMAIN;
+const X_PLATFORM      = import.meta.env.VITE_X_PLATFORM;
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 export type LoanApplicant = {
   firstName: string;
   lastName: string;
@@ -22,7 +36,7 @@ export type LoanRequest = {
   loanType?: string;
 };
 
-// Mapping of branches to pincodes
+// ── Branch to Pincode map ─────────────────────────────────────────────────────
 export const BRANCH_PINCODES: Record<string, string> = {
   "agra": "282001",
   "akurdi": "411035",
@@ -61,130 +75,90 @@ export const BRANCH_PINCODES: Record<string, string> = {
   "vijaywada": "520001",
 };
 
-// API endpoints from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5050";
-const AUTH_ENDPOINT = `${API_BASE_URL}/alpha/v1/auth/client`;
-const LOAN_ENDPOINT = `${API_BASE_URL}/alpha/v1/application/short`;
-const WORKFLOW_BUILD_ENDPOINT = `${API_BASE_URL}/alpha/v1/workflow/build`;
-const WORKFLOW_EXECUTION_ENDPOINT = `${API_BASE_URL}/alpha/v1/workflow/execution`;
+// ── Auth ──────────────────────────────────────────────────────────────────────
+export const getAuthToken = async (): Promise<string> => {
+  const response = await fetch(AUTH_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Platform": X_PLATFORM,
+      "X-tenant-domain": X_TENANT_DOMAIN,
+    },
+    body: JSON.stringify({ platform: "PARTNER_PORTAL", client_id: CLIENT_ID, client_secret: CLIENT_SECRET }),
+  });
 
-// Authentication credentials from environment variables
-const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
-const X_TENANT_DOMAIN = import.meta.env.VITE_X_TENANT_DOMAIN;
-const X_PLATFORM = import.meta.env.VITE_X_PLATFORM;
-
-
-// Function to get authentication token
-const getAuthToken = async (): Promise<string> => {
-  try {
-    const response = await fetch(AUTH_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "X-Platform": X_PLATFORM,
-        "Content-Type": "application/json",
-        "X-tenant-domain": X_TENANT_DOMAIN
-      },
-      body: JSON.stringify({
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Auth error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (data.status !== 1 || !data.data.token) {
-      throw new Error("Failed to get authentication token");
-    }
-
-    return data.data.token;
-  } catch (error) {
-    console.error("Authentication error:", error);
-    throw error;
-  }
+  if (!response.ok) throw new Error(`Auth error: ${response.status}`);
+  const data = await response.json();
+  if (data.status !== 1 || !data.data.token) throw new Error("Failed to get authentication token");
+  return data.data.token;
 };
 
-// Function to build the workflow
+// ── Workflow helpers ──────────────────────────────────────────────────────────
 const buildWorkflow = async (applicationId: string, token: string): Promise<any> => {
-  try {
-    console.log("Building workflow for application ID:", applicationId);
-    const payload = {
-      workflow_type: "LEAD_CREATION",
-      source_id: String(applicationId)
-    };
+  const response = await fetch(WORKFLOW_BUILD_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "X-tenant-domain": X_TENANT_DOMAIN,
+      "X-Platform": X_PLATFORM,
+    },
+    body: JSON.stringify({ workflow_type: "LEAD_CREATION", source_id: String(applicationId) }),
+  });
 
-    console.log("Workflow build payload:", payload);
-
-    const response = await fetch(WORKFLOW_BUILD_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        "X-tenant-domain": X_TENANT_DOMAIN,
-        "X-Platform": X_PLATFORM
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Workflow build error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (data.status !== 1) {
-      throw new Error("Failed to build workflow");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Workflow build error:", error);
-    throw error;
-  }
+  if (!response.ok) throw new Error(`Workflow build error: ${response.status}`);
+  const data = await response.json();
+  if (data.status !== 1) throw new Error("Failed to build workflow");
+  return data;
 };
 
-// Function to execute the workflow
 const executeWorkflow = async (applicationId: string, stepId: string, token: string): Promise<any> => {
-  try {
-    console.log("Executing workflow for application ID:", applicationId, "with step ID:", stepId);
-    const payload = {
+  const response = await fetch(WORKFLOW_EXECUTION_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "X-tenant-domain": X_TENANT_DOMAIN,
+      "X-Platform": X_PLATFORM,
+    },
+    body: JSON.stringify({
       workflow_type: "LEAD_CREATION",
       source_id: String(applicationId),
-      execute_step_id: String(stepId)
-    };
+      execute_step_id: String(stepId),
+    }),
+  });
 
-    console.log("Workflow execution payload:", payload);
-
-    const response = await fetch(WORKFLOW_EXECUTION_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        "X-tenant-domain": X_TENANT_DOMAIN,
-        "X-Platform": X_PLATFORM
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Workflow execution error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (data.status !== 1) {
-      throw new Error("Failed to execute workflow");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Workflow execution error:", error);
-    throw error;
-  }
+  if (!response.ok) throw new Error(`Workflow execution error: ${response.status}`);
+  const data = await response.json();
+  if (data.status !== 1) throw new Error("Failed to execute workflow");
+  return data;
 };
 
-// Function to submit loan request and process workflow
+// ── createLead — accepts raw payload from LoanForm, no application_id sent ────
+// application_id is NOT included in the request — the API generates and
+// returns it in the response for new applications.
+export const createLead = async (payload: Record<string, unknown>): Promise<any> => {
+  const token = await getAuthToken();
+
+  const res = await fetch(CREATE_LEAD_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "X-tenant-domain": X_TENANT_DOMAIN,
+      "X-Platform": X_PLATFORM,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const data = await res.json();
+  if (data.status !== 1) throw new Error(data.message || "Application creation failed");
+
+  return data;
+};
+
+// ── submitLoanRequest — used by other loan flows with workflow steps ───────────
 export const submitLoanRequest = async (data: LoanRequest): Promise<any> => {
   try {
     // Get authentication token first
@@ -241,24 +215,16 @@ export const submitLoanRequest = async (data: LoanRequest): Promise<any> => {
       throw new Error(`Error: ${response.status}`);
     }
 
-    const createResponse = await response.json();
-    if (createResponse.status !== 1 || !createResponse.application_id) {
-      throw new Error("Failed to create loan application");
-    }
+  const createResponse = await response.json();
+  if (createResponse.status !== 1 || !createResponse.application_id)
+    throw new Error("Failed to create loan application");
 
-    // Ensure the application_id is treated as a string
-    const applicationId = String(createResponse.application_id);
-    console.log("Loan application created successfully with ID:", applicationId);
+  const applicationId = String(createResponse.application_id);
 
-    // Step 2: Build the workflow using the application_id
-    const buildResponse = await buildWorkflow(applicationId, token);
-    console.log("Workflow built successfully:", buildResponse);
+  const buildResponse = await buildWorkflow(applicationId, token);
 
-    // Step 3: Extract the first stage's first step ID
-    const firstStage = buildResponse.data.stages[0];
-    if (!firstStage || !firstStage.steps || !firstStage.steps.length) {
-      throw new Error("No stages or steps found in the workflow response");
-    }
+  const firstStage = buildResponse.data.stages[0];
+  if (!firstStage?.steps?.length) throw new Error("No stages or steps found in workflow response");
 
     const firstStep = firstStage.steps[0];
     if (!firstStep || !firstStep.id) {
@@ -298,4 +264,21 @@ export const useSubmitLoanRequest = () => {
       });
     },
   });
-}; 
+};
+
+
+export const useSubmitLoanRequestLeadCreation = () => {
+  return useMutation({
+    mutationFn: createLead,
+    onSuccess: (data) => {
+      toast.success("Loan application submitted successfully!", {
+        description: `Application ID: ${data.application_id ?? data.data?.application_id ?? "Generated"}`,
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to submit loan application", {
+        description: error instanceof Error ? error.message : "Please try again later.",
+      });
+    },
+  });
+};
