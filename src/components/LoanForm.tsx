@@ -18,6 +18,12 @@ const buildPayload = (form) => ({
     type: "PAYDAY_ENQUIRY",
     apply_capacity: "PERSON",
     entity_type: "",
+    loan_info:
+      [
+        {
+          "sub_loan_type": "PDLNEW"
+        }
+      ],
   },
   primary: {
     applicant_type: "PRIMARY",
@@ -127,8 +133,9 @@ export default function LoanForm() {
                   <Field label="Employment Type" required>
                     <select name="employmentType" value={form.employmentType} onChange={set} className={cls} required>
                       <option value="">Select</option>
-                      <option value="salaried">Salaried</option>
-                      <option value="self-employed">Self-Employed</option>
+                      <option value="SALARIED">Salaried</option>
+                      <option value="SELF_EMPLOYED_BUSINESS">Self-Employed-Business</option>
+                      <option value="SELF_EMPLOYED_PROFESSIONAL">Self-Employed-Professional</option>
                     </select>
                   </Field>
                   <Field label="Salary Mode" required>
@@ -195,12 +202,46 @@ export default function LoanForm() {
                   </Field>
                   <Field label="State" required>
                     <select name="state" value={form.state} onChange={set} className={cls} required>
-                      <option value="">Select State</option>
-                      <option value="DELHI">Delhi</option>
-                      <option value="MAHARASHTRA">Maharashtra</option>
+                      {/* States */}
+                      <option value="ANDHRA_PRADESH">Andhra Pradesh</option>
+                      <option value="ARUNACHAL_PRADESH">Arunachal Pradesh</option>
+                      <option value="ASSAM">Assam</option>
+                      <option value="BIHAR">Bihar</option>
+                      <option value="CHHATTISGARH">Chhattisgarh</option>
+                      <option value="GOA">Goa</option>
+                      <option value="GUJARAT">Gujarat</option>
+                      <option value="HARYANA">Haryana</option>
+                      <option value="HIMACHAL_PRADESH">Himachal Pradesh</option>
+                      <option value="JHARKHAND">Jharkhand</option>
                       <option value="KARNATAKA">Karnataka</option>
+                      <option value="KERALA">Kerala</option>
+                      <option value="MADHYA_PRADESH">Madhya Pradesh</option>
+                      <option value="MAHARASHTRA">Maharashtra</option>
+                      <option value="MANIPUR">Manipur</option>
+                      <option value="MEGHALAYA">Meghalaya</option>
+                      <option value="MIZORAM">Mizoram</option>
+                      <option value="NAGALAND">Nagaland</option>
+                      <option value="ODISHA">Odisha</option>
+                      <option value="PUNJAB">Punjab</option>
+                      <option value="RAJASTHAN">Rajasthan</option>
+                      <option value="SIKKIM">Sikkim</option>
                       <option value="TAMIL_NADU">Tamil Nadu</option>
+                      <option value="TELANGANA">Telangana</option>
+                      <option value="TRIPURA">Tripura</option>
                       <option value="UTTAR_PRADESH">Uttar Pradesh</option>
+                      <option value="UTTARAKHAND">Uttarakhand</option>
+                      <option value="WEST_BENGAL">West Bengal</option>
+
+                      {/* Union Territories */}
+                      <option value="ANDAMAN_NICOBAR">Andaman & Nicobar Islands</option>
+                      <option value="CHANDIGARH">Chandigarh</option>
+                      <option value="DADRA_NAGAR_HAVELI_DAMAN_DIU">Dadra & Nagar Haveli and Daman & Diu</option>
+                      <option value="DELHI">Delhi (NCT)</option>
+                      <option value="JAMMU_KASHMIR">Jammu & Kashmir</option>
+                      <option value="LADAKH">Ladakh</option>
+                      <option value="LAKSHADWEEP">Lakshadweep</option>
+                      <option value="PUDUCHERRY">Puducherry</option>
+
                     </select>
                   </Field>
                   <Field label="City" required>
