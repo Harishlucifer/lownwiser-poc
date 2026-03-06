@@ -15,7 +15,7 @@ const buildPayload = (form) => ({
     employment_type: form.employmentType,
     terms_and_conditions: 1,
     loan_type_code: "PDL",
-    type: "ENQUIRY_APPLICATION",
+    type: "PAYDAY_ENQUIRY",
     apply_capacity: "PERSON",
     entity_type: "",
   },
