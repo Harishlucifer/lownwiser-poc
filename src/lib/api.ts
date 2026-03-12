@@ -271,8 +271,10 @@ export const useSubmitLoanRequestLeadCreation = () => {
   return useMutation({
     mutationFn: createLead,
     onSuccess: (data) => {
+      const applicationCode = data?.result?.application?.application_code;
+
       toast.success("Loan application submitted successfully!", {
-        description: `Application ID: ${data.application_id ?? data.data?.application_id ?? "Generated"}`,
+        description: `Application Code: ${applicationCode ?? "Generated"}`,
       });
     },
     onError: (error) => {
