@@ -49,6 +49,19 @@ const buildPayload = (form) => ({
       last_name: "",
       gender: form.gender,
       dob: form.dob, 
+      work_info: [
+          {
+              income_info: [
+                  {
+                      income_period: "MONTHLY",
+                      financial_line_item_id: "171032766552809876",
+                      amount: form.monthlySalary
+                  }
+              ],
+              salary_mode: form.salaryMode
+          }
+      ]
+
     },
   },
 });
@@ -141,15 +154,30 @@ export default function LoanForm() {
                   <Field label="Salary Mode" required>
                     <select name="salaryMode" value={form.salaryMode} onChange={set} className={cls} required>
                       <option value="">Select Salary mode</option>
-                      <option value="bank">Bank Transfer</option>
-                      <option value="cash">Cash</option>
-                      <option value="cheque">Cheque</option>
+                      <option value="NEFT">NEFT</option>
+                      <option value="CASH">Cash</option>
+                      <option value="CHEQUE">Cheque</option>
+                      <option value="UPI">UPI</option>
                     </select>
                   </Field>
                   <Field label="Purpose of Loan" required colSpan={2}>
-                    <input name="purposeOfLoan" type="text" placeholder="Purpose of Loan"
-                      value={form.purposeOfLoan} onChange={set} className={cls} required />
-                  </Field>
+                  <select
+                    name="purposeOfLoan"
+                    value={form.purposeOfLoan}
+                    onChange={set}
+                    className={cls}
+                    required
+                  >
+                    <option value="">Select an option</option>
+                    <option value="Personal">PERSONAL</option>
+                    <option value="Marriage">MARRIAGE</option>
+                    <option value="Medical">MEDICAL</option>
+                    <option value="Travel">TRAVEL</option>
+                    <option value="Education">EDUCATION</option>
+                    <option value="Emergency">EMERGENCY</option>
+                    <option value="Other">OTHER</option>
+                  </select>
+                </Field>
                 </div>
               </div>
 
