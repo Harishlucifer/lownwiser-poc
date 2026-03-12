@@ -105,28 +105,32 @@ export default function LoanForm() {
   };
 
   // API returns the generated application_id in the response
-  const application_code = data?.application_code ?? data?.data?.application_code;
+  const application_code = data?.result?.application?.application_code;
 
-  return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">Loan Application</h2>
+ return (
+  <section className="py-16 bg-white">
+    <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold text-center mb-8 text-gray-800">
+          Loan Application
+        </h2>
 
-          {isSuccess && (
-            <div className="mb-6 p-4 rounded-lg border bg-green-50 border-green-300 text-green-800 text-sm font-medium">
-              Loan application submitted successfully!
-              {application_code && (
-                <p className="mt-1 font-bold">Application ID: {application_code}</p>
-              )}
-            </div>
-          )}
+        {isSuccess && (
+          <div className="mb-6 p-4 rounded-lg border bg-green-50 border-green-300 text-green-800 text-sm font-medium">
+            Loan application submitted successfully!
+            {application_code && (
+              <p className="mt-1 font-bold">
+                Application Code: {application_code}
+              </p>
+            )}
+          </div>
+        )}
 
-          {isError && (
-            <div className="mb-6 p-4 rounded-lg border bg-red-50 border-red-300 text-red-800 text-sm font-medium">
-              {error?.message || "Something went wrong. Please try again."}
-            </div>
-          )}
+        {isError && (
+          <div className="mb-6 p-4 rounded-lg border bg-red-50 border-red-300 text-red-800 text-sm font-medium">
+            {error?.message || "Something went wrong. Please try again."}
+          </div>
+        )}
 
           <div className="border-2 border-blue-100 rounded-xl p-8 shadow-sm">
             <form className="space-y-12" onSubmit={handleSubmit}>
